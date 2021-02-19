@@ -70,7 +70,8 @@ const DataProcessingPage = ({ experimentId, experimentData, route }) => {
 
   const completedPath = '/experiments/[experimentId]/data-exploration';
 
-  const completedSteps = useSelector((state) => state.experimentSettings.processing.meta.stepsDone);
+  const { stepsDone: completedSteps, error } = useSelector((state) => state.experimentSettings.processing.meta);
+
   const initialState = useSelector((state) => state.experimentSettings.processing.initialState);
 
   const [stepIdx, setStepIdx] = useState(completedSteps.size % steps.length);
@@ -88,7 +89,7 @@ const DataProcessingPage = ({ experimentId, experimentData, route }) => {
   useEffect(() => {
     const goToStepIdx = () => {
       if (carouselRef.current) {
-        carouselRef.current.goTo(stepIdx);
+        carouselRef.current.goTo(stepIdx, true);
       }
     };
 
@@ -101,6 +102,19 @@ const DataProcessingPage = ({ experimentId, experimentData, route }) => {
     goToStepIdx();
     completeProcessingStepIfAdvanced();
   }, [stepIdx]);
+
+  useEffect(() => {
+    console.log('error');
+    console.log(error);
+
+    if (!error) {
+      return;
+    }
+
+    if (stepIdx > completedSteps.size) {
+      setStepIdx(completedSteps.size);
+    }
+  }, [error, stepIdx]);
 
   const renderTitle = () => (
     <Row justify='space-between'>

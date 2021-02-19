@@ -4,6 +4,7 @@ export default {
     meta: {
       complete: false,
       stepsDone: new Set([]),
+      errorMessage: null,
     },
     dataIntegration: {
       dataIntegration: {
@@ -21,6 +22,7 @@ export default {
         variationExplained: 91,
         excludeGeneCategories: [],
       },
+      errorMessage: null,
     },
     configureEmbedding: {
       embeddingSettings: {
@@ -44,6 +46,7 @@ export default {
           },
         },
       },
+      errorMessage: null,
     },
   },
 };

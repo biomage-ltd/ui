@@ -1,0 +1,7 @@
+const errorTypes = {
+  COMPLETING_PROCESSING_STEP: 0,
+  LOADING_PROCESSING_SETTINGS: 1,
+  SAVING_PROCESSING_SETTINGS: 2,
+};
+
+export default errorTypes;
