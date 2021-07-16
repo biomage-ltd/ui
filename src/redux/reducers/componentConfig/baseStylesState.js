@@ -18,6 +18,7 @@ const axesBaseState = {
   gridOpacity: 0,
   gridWidth: 10,
   domainWidth: 2,
+  xAxisRotateLabels: false,
 };
 
 const titleBaseState = {
@@ -34,7 +35,7 @@ const fontStyleBaseState = {
 
 const colourBaseState = {
   masterColour: '#000000',
-  gradient: 'viridis',
+  gradient: 'default',
   toggleInvert: '#FFFFFF',
   invert: 'standard',
   reverseColourBar: false,

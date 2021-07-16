@@ -57,7 +57,11 @@ const generateSpec = (config, plotData) => {
       {
         name: 'color',
         type: 'linear',
-        range: { scheme: config.colour.gradient },
+        range: {
+          scheme: config.colour.gradient === 'default'
+            ? (config.colour.toggleInvert === '#FFFFFF' ? 'purplered' : 'darkgreen')
+            : config.colour.gradient,
+        },
         domain: { data: 'plotData', field: 'value' },
         reverse: config.colour.reverseCbar,
       },
@@ -81,6 +85,8 @@ const generateSpec = (config, plotData) => {
         titleColor: { value: config.colour.masterColour },
         labelFontSize: { value: config.axes.labelFontSize },
         domainWidth: { value: config.axes.domainWidth },
+        labelAngle: config.axes.xAxisRotateLabels ? 45 : 0,
+        labelAlign: config.axes.xAxisRotateLabels ? 'left' : 'center',
       },
       {
         scale: 'y',
