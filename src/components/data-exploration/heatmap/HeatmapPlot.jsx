@@ -11,7 +11,7 @@ import spec from '../../../utils/heatmapSpec';
 import VegaHeatmap from './VegaHeatmap';
 import PlatformError from '../../PlatformError';
 import { updateCellInfo } from '../../../redux/actions/cellInfo';
-import { loadGeneExpression } from '../../../redux/actions/genes';
+import { loadGeneExpression, loadMarkerGenes } from '../../../redux/actions/genes';
 import { loadCellSets } from '../../../redux/actions/cellSets';
 import { loadComponentConfig } from '../../../redux/actions/componentConfig';
 import populateHeatmapData from '../../plots/helpers/populateHeatmapData';
@@ -29,10 +29,15 @@ const HeatmapPlot = (props) => {
 
   const loadingGenes = useSelector((state) => state.genes.expression.loading);
   const selectedGenes = useSelector((state) => state.genes.expression.views[COMPONENT_TYPE]?.data);
+
   const [vegaData, setVegaData] = useState(null);
   const [vegaSpec, setVegaSpec] = useState(spec);
 
   const expressionData = useSelector((state) => state.genes.expression);
+  const {
+    loading: markerGenesLoading, error: markerGenesLoadingError, order: markerGenesOrder,
+  } = useSelector((state) => state.genes.markers);
+
   const hoverCoordinates = useRef({});
 
   const cellSets = useSelector((state) => state.cellSets);
@@ -43,6 +48,15 @@ const HeatmapPlot = (props) => {
   const heatmapSettings = useSelector(
     (state) => state.componentConfig[COMPONENT_TYPE]?.config,
   ) || {};
+
+  const loadingProcessingSettings = useSelector(
+    (state) => state.experimentSettings.processing.meta.loading,
+  );
+
+  const louvainClustersResolution = useSelector(
+    (state) => state.experimentSettings.processing
+      .configureEmbedding?.clusteringSettings.methodSettings.louvain.resolution,
+  );
 
   const {
     selectedTracks, groupedTracks, expressionValue, legendIsVisible,
@@ -96,6 +110,7 @@ const HeatmapPlot = (props) => {
     );
     setDataDebounce(data);
   }, [loadingGenes,
+    selectedGenes,
     hidden,
     selectedTracks,
     groupedTracks,
@@ -103,6 +118,12 @@ const HeatmapPlot = (props) => {
     properties,
     hierarchy,
     expressionValue]);
+
+  useEffect(() => {
+    if (markerGenesLoading && !markerGenesOrder && !loadingProcessingSettings) {
+      dispatch(loadMarkerGenes(experimentId, louvainClustersResolution));
+    }
+  }, [markerGenesOrder, markerGenesLoading, loadingProcessingSettings]);
 
   useEffect(() => {
     setMaxCells(Math.floor(width * 0.8));
@@ -135,6 +156,25 @@ const HeatmapPlot = (props) => {
     );
   };
 
+  if (error || viewError || markerGenesLoadingError) {
+    return (
+      <PlatformError
+        error={error}
+        onClick={() => {
+          dispatch(loadGeneExpression(experimentId, selectedGenes, COMPONENT_TYPE));
+        }}
+      />
+    );
+  }
+
+  if (cellSetsLoading || expressionData.loading.length || markerGenesLoading) {
+    return (
+      <center>
+        <Loader experimentId={experimentId} />
+      </center>
+    );
+  }
+
   const signalListeners = {
     mouseOver: handleMouseOver,
   };
@@ -149,14 +189,6 @@ const HeatmapPlot = (props) => {
     );
   }
 
-  if (cellSetsLoading || expressionData.loading.length) {
-    return (
-      <center>
-        <Loader experimentId={experimentId} />
-      </center>
-    );
-  }
-
   if (!vegaData) {
     return (
       <center style={{ marginTop: height / 2 }}>
@@ -165,16 +197,6 @@ const HeatmapPlot = (props) => {
     );
   }
 
-  if (error || viewError) {
-    return (
-      <PlatformError
-        error={error}
-        onClick={() => {
-          dispatch(loadGeneExpression(experimentId, selectedGenes, COMPONENT_TYPE));
-        }}
-      />
-    );
-  }
   return (
     <div>
       <VegaHeatmap
